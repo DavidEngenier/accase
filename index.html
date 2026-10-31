@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accase · Control de Transporte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: Inter, system-ui, sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .toast { animation: toastIn .25s ease; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .bar-fill { transition: width .4s ease; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800">
+    <div class="flex h-screen overflow-hidden">
+        <div id="sidebar-backdrop" class="fixed inset-0 z-30 bg-slate-900/50 hidden lg:hidden" onclick="toggleSidebar(false)"></div>
+
+        <aside id="sidebar" class="fixed lg:static z-40 inset-y-0 left-0 w-64 bg-slate-900 text-white flex flex-col justify-between p-4 shadow-lg transform -translate-x-full lg:translate-x-0 transition-transform">
+            <div>
+                <div class="flex items-center justify-between mb-8 px-2">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid fa-truck-fast text-indigo-400 text-2xl"></i>
+                        <div>
+                            <h1 class="font-bold text-lg leading-tight">Accase</h1>
+                            <span class="text-xs text-slate-400">Control de Transporte</span>
+                        </div>
+                    </div>
+                    <button class="lg:hidden text-slate-400" onclick="toggleSidebar(false)" aria-label="Cerrar menú">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <nav class="space-y-1">
+                    <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-link flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-indigo-600 text-white font-medium">
+                        <i class="fa-solid fa-chart-pie w-5"></i><span>Dashboard</span>
+                    </a>
+                    <a href="#" onclick="switchTab('operativo')" id="nav-operativo" class="nav-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-route w-5"></i><span>Módulo Operativo</span>
+                    </a>
+                    <a href="#" onclick="switchTab('administrativo')" id="nav-administrativo" class="nav-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-file-invoice-dollar w-5"></i><span>Módulo Administrativo</span>
+                    </a>
+                    <a href="#" onclick="switchTab('reportes')" id="nav-reportes" class="nav-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-file-csv w-5"></i><span>Reportes</span>
+                    </a>
+                    <a href="#" onclick="switchTab('unidades')" id="nav-unidades" class="nav-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white">
+                        <i class="fa-solid fa-truck w-5"></i><span>Unidades</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="border-t border-slate-800 pt-4 px-2 text-xs text-slate-400 space-y-2">
+                <div class="flex items-center justify-between">
+                    <span>OnlineFleet</span>
+                    <span id="of-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-900 text-emerald-300">Conectado</span>
+                </div>
+                <p id="of-sync" class="text-[11px] text-slate-500">Sincronizado hace un momento</p>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-6 w-full">
+            <header class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+                <div class="flex items-start gap-3">
+                    <button class="lg:hidden mt-1 text-slate-600" onclick="toggleSidebar(true)" aria-label="Abrir menú">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+                    <div>
+                        <p class="text-[11px] uppercase tracking-wider text-indigo-600 font-semibold">Maquetado de demostración</p>
+                        <h2 id="page-title" class="text-2xl font-bold text-slate-800">Panel de Control Principal</h2>
+                        <p id="page-subtitle" class="text-sm text-slate-500">Resumen operativo y financiero del día</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="startDemo()" class="border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm px-3 py-2 rounded-lg font-medium">
+                        Recorrido para el cliente
+                    </button>
+                    <button onclick="AccaseStore.reset(); renderAll(); toast('Demo restaurada a datos de muestra')" class="border border-slate-300 bg-white text-slate-700 text-sm px-3 py-2 rounded-lg">
+                        Restaurar demo
+                    </button>
+                    <a href="newrecords.html" class="bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-lg font-medium shadow flex items-center space-x-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Nuevo viaje</span>
+                    </a>
+                </div>
+            </header>
+
+            <div id="dashboard" class="tab-content active space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" id="kpi-grid"></div>
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                    <div class="xl:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                            <h3 class="font-bold text-slate-800">Viajes activos</h3>
+                            <span class="text-xs text-slate-400">Fuente: módulo operativo</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-slate-600">
+                                <thead class="bg-slate-50 text-slate-400 text-xs uppercase font-semibold">
+                                    <tr>
+                                        <th class="p-3.5">Folio</th>
+                                        <th class="p-3.5">Unidad</th>
+                                        <th class="p-3.5">Ruta</th>
+                                        <th class="p-3.5">Estatus</th>
+                                        <th class="p-3.5 text-right">Flete</th>
+                                        <th class="p-3.5 text-right">Margen</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dash-trips" class="divide-y divide-slate-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-slate-800">Alertas de flota</h3>
+                            <span id="alert-count" class="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full">0</span>
+                        </div>
+                        <p class="text-xs text-slate-500">Fallas reportadas por OnlineFleet. Aún no hay API; esta vista simula el cruce.</p>
+                        <div id="dash-alerts" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="operativo" class="tab-content space-y-6">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">Control de viajes</h3>
+                            <p class="text-sm text-slate-500">El administrativo factura a partir de estos registros.</p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <input id="trip-search" type="search" placeholder="Buscar unidad, folio o ruta..." class="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-slate-400 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Folio</th>
+                                    <th class="p-3">Unidad / operador</th>
+                                    <th class="p-3">Ruta</th>
+                                    <th class="p-3 text-right">Costo est.</th>
+                                    <th class="p-3 text-right">Margen</th>
+                                    <th class="p-3">Estatus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="op-trips" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="text-lg font-bold text-slate-800">Unidades en patio / ruta</h3>
+                    <div id="op-units" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">Fallas activas</h3>
+                            <p class="text-xs text-slate-500">Simulación de integración OnlineFleet</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="syncFleet()" class="bg-indigo-600 text-white px-3 py-1.5 rounded-lg text-sm">Sincronizar API</button>
+                            <button onclick="window.location.href='updaterecord.html'" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg text-sm">Actualizar</button>
+                        </div>
+                    </div>
+                    <div id="op-faults" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                </div>
+            </div>
+
+            <div id="administrativo" class="tab-content space-y-6">
+                <div id="admin-empty" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-5 text-sm text-amber-900">
+                    Administrativo no puede facturar sin viajes en operativo. Registra un viaje para habilitar esta vista.
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">Facturación del viaje</h3>
+                            <p class="text-sm text-slate-500">Selecciona un viaje operativo y genera el comprobante de ingreso.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <select id="invoice-trip" class="px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"></select>
+                            <button onclick="invoiceSelectedTrip()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium">Facturar viaje</button>
+                        </div>
+                    </div>
+                    <div class="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center bg-slate-50 hover:bg-slate-100 transition" id="dropzone">
+                        <i class="fa-solid fa-cloud-arrow-up text-4xl text-indigo-500 mb-3"></i>
+                        <p class="text-sm font-medium text-slate-700">Arrastra XML / PDF o haz clic para simular carga SAT</p>
+                        <span class="text-xs text-slate-400">En producción se validaría el UUID. Aquí solo se registra el archivo.</span>
+                        <input id="file-input" type="file" accept=".xml,.pdf" class="hidden">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-slate-400 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3">Folio</th>
+                                    <th class="p-3">Viaje</th>
+                                    <th class="p-3">Tipo</th>
+                                    <th class="p-3">Cliente / proveedor</th>
+                                    <th class="p-3 text-right">Monto</th>
+                                    <th class="p-3">SAT</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoice-table" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="reportes" class="tab-content space-y-6">
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="text-lg font-bold text-slate-800">Reportes consolidados</h3>
+                    <p class="text-sm text-slate-500">Cruce de telemetría (OnlineFleet) y costos de viaje / facturación.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 border border-slate-200 rounded-lg flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">Rentabilidad por unidad</h4>
+                                <p class="text-xs text-slate-500">Ingresos vs diésel, casetas, anticipos y taller.</p>
+                            </div>
+                            <button onclick="exportReport('Rentabilidad por unidad')" class="bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-indigo-700">
+                                <i class="fa-solid fa-download mr-1"></i> Exportar CSV
+                            </button>
+                        </div>
+                        <div class="p-4 border border-slate-200 rounded-lg flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">Diésel asignado vs estimado</h4>
+                                <p class="text-xs text-slate-500">Litros del viaje vs precio de referencia $24.50/L.</p>
+                            </div>
+                            <button onclick="exportReport('Resumen diésel')" class="bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg hover:bg-indigo-700">
+                                <i class="fa-solid fa-download mr-1"></i> Exportar CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div id="report-preview" class="overflow-x-auto"></div>
+                </div>
+            </div>
+
+            <div id="unidades" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4" id="unit-kpis"></div>
+                <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-800">Costo y margen por unidad</h3>
+                        <p class="text-xs text-slate-500">Se calcula con los viajes del operativo más fallas de taller.</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-slate-400 text-xs uppercase font-semibold">
+                                <tr>
+                                    <th class="p-3.5">Unidad</th>
+                                    <th class="p-3.5">Operador</th>
+                                    <th class="p-3.5">Ruta / ubicación</th>
+                                    <th class="p-3.5 text-right">Ingresos</th>
+                                    <th class="p-3.5 text-right">Gastos</th>
+                                    <th class="p-3.5 text-right">Utilidad</th>
+                                    <th class="p-3.5">Margen</th>
+                                    <th class="p-3.5">Estatus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unit-table" class="divide-y divide-slate-100"></tbody>
+                            <tfoot id="unit-foot" class="bg-slate-100/80 font-bold text-slate-800 text-xs uppercase"></tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="demo-panel" class="hidden fixed bottom-5 left-5 z-50 max-w-sm bg-white border border-slate-200 shadow-2xl rounded-2xl p-4">
+        <p class="text-[11px] uppercase tracking-wider text-indigo-600 font-bold">Guion de presentación</p>
+        <h4 id="demo-title" class="font-bold text-slate-900 mt-1"></h4>
+        <p id="demo-text" class="text-sm text-slate-600 mt-1 leading-relaxed"></p>
+        <div class="flex items-center justify-between mt-4">
+            <button type="button" onclick="stopDemo()" class="text-xs text-slate-500 hover:text-slate-800">Cerrar</button>
+            <div class="flex gap-2">
+                <span id="demo-step" class="text-xs text-slate-400 self-center"></span>
+                <button type="button" onclick="nextDemo()" class="bg-indigo-600 text-white text-sm px-3 py-1.5 rounded-lg font-medium">Siguiente</button>
+            </div>
+        </div>
+    </div>
+    <div id="toast" class="hidden toast fixed bottom-5 right-5 z-50 bg-slate-900 text-white text-sm px-4 py-3 rounded-xl shadow-lg"></div>
+
+    <script src="js/store.js"></script>
+    <script>
+        const STATUS_CLASS = {
+            'En Tránsito': 'bg-emerald-100 text-emerald-700',
+            Descargando: 'bg-amber-100 text-amber-700',
+            'En Carga': 'bg-amber-100 text-amber-800',
+            Programado: 'bg-indigo-100 text-indigo-700',
+            Completado: 'bg-slate-200 text-slate-700',
+            Disponible: 'bg-indigo-100 text-indigo-800',
+            Mantenimiento: 'bg-rose-100 text-rose-700'
+        };
+
+        const TITLES = {
+            dashboard: ['Panel de Control Principal', 'Resumen operativo y financiero del día'],
+            operativo: ['Módulo Operativo', 'Registro de viajes y actualización de fallas'],
+            administrativo: ['Módulo Administrativo', 'Facturación y reportes sobre viajes ya registrados'],
+            reportes: ['Reportes', 'Cruce OnlineFleet + costos de viaje'],
+            unidades: ['Unidades', 'Gasto por unidad y margen de ganancia']
+        };
+
+        function toast(message) {
+            const el = document.getElementById('toast');
+            el.textContent = message;
+            el.classList.remove('hidden');
+            clearTimeout(toast._t);
+            toast._t = setTimeout(() => el.classList.add('hidden'), 2600);
+        }
+
+        function badge(status) {
+            return '<span class="px-2 py-1 text-xs rounded-md font-medium ' + (STATUS_CLASS[status] || 'bg-slate-100 text-slate-700') + '">' + status + '</span>';
+        }
+
+        function toggleSidebar(open) {
+            const side = document.getElementById('sidebar');
+            const back = document.getElementById('sidebar-backdrop');
+            if (open) {
+                side.classList.remove('-translate-x-full');
+                back.classList.remove('hidden');
+            } else {
+                side.classList.add('-translate-x-full');
+                back.classList.add('hidden');
+            }
+        }
+
+        function switchTab(tabId) {
+            if (!TITLES[tabId]) tabId = 'dashboard';
+            document.querySelectorAll('.tab-content').forEach((tab) => tab.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            ['dashboard', 'operativo', 'administrativo', 'reportes', 'unidades'].forEach((item) => {
+                const nav = document.getElementById('nav-' + item);
+                nav.className = item === tabId
+                    ? 'nav-link flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-indigo-600 text-white font-medium'
+                    : 'nav-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white';
+            });
+            document.getElementById('page-title').innerText = TITLES[tabId][0];
+            document.getElementById('page-subtitle').innerText = TITLES[tabId][1];
+            if (location.hash !== '#' + tabId) history.replaceState(null, '', '#' + tabId);
+            toggleSidebar(false);
+        }
+
+        function renderKpis(state) {
+            const k = AccaseStore.kpis(state);
+            document.getElementById('kpi-grid').innerHTML = [
+                ['Unidades activas', k.activeUnits + '/' + k.totalUnits, k.activeTrips + ' viajes en curso', 'fa-truck', 'bg-indigo-50 text-indigo-600'],
+                ['Facturado (viajes)', AccaseStore.formatMoney(k.billed), 'Ingreso operativo acumulado', 'fa-sack-dollar', 'bg-emerald-50 text-emerald-600'],
+                ['Gasto operativo', AccaseStore.formatMoney(k.expenses), k.dieselShare.toFixed(1) + '% del ingreso', 'fa-gas-pump', 'bg-amber-50 text-amber-600'],
+                ['Margen de ganancia', AccaseStore.formatMoney(k.margin), k.marginPct.toFixed(1) + '% rentabilidad', 'fa-chart-line', 'bg-blue-50 text-blue-600']
+            ].map(([label, value, hint, icon, tone]) => `
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">${label}</span>
+                        <h3 class="text-2xl font-bold text-slate-800 mt-1">${value}</h3>
+                        <span class="text-xs text-slate-500 font-medium">${hint}</span>
+                    </div>
+                    <div class="${tone} p-3 rounded-lg"><i class="fa-solid ${icon} text-xl"></i></div>
+                </div>
+            `).join('');
+        }
+
+        function renderDashTrips(state) {
+            const rows = state.trips.filter((t) => t.status !== 'Completado').slice(0, 8);
+            document.getElementById('dash-trips').innerHTML = rows.map((t) => {
+                const cost = AccaseStore.tripCost(t);
+                const margin = t.revenue - cost;
+                const pct = t.revenue ? (margin / t.revenue) * 100 : 0;
+                return `<tr>
+                    <td class="p-3.5 font-mono text-xs font-bold text-indigo-600">${t.folio}</td>
+                    <td class="p-3.5 font-semibold">${t.unitId}<div class="text-xs text-slate-400 font-normal">${t.driver}</div></td>
+                    <td class="p-3.5">${t.origin} ➔ ${t.destination}</td>
+                    <td class="p-3.5">${badge(t.status)}</td>
+                    <td class="p-3.5 text-right">${AccaseStore.formatMoney(t.revenue)}</td>
+                    <td class="p-3.5 text-right font-semibold ${margin < 0 ? 'text-rose-600' : 'text-emerald-600'}">${pct.toFixed(1)}%</td>
+                </tr>`;
+            }).join('') || '<tr><td class="p-4 text-slate-400" colspan="6">Sin viajes activos. Crea uno en operativo.</td></tr>';
+        }
+
+        function renderAlerts(state) {
+            const open = state.faults.filter((f) => f.status !== 'finalizado');
+            document.getElementById('alert-count').textContent = String(open.length);
+            document.getElementById('dash-alerts').innerHTML = open.map((f) => `
+                <div class="border border-slate-200 rounded-lg p-3 bg-slate-50">
+                    <div class="flex justify-between gap-2">
+                        <span class="font-semibold text-sm">${f.title}</span>
+                        <span class="text-[10px] uppercase font-bold ${f.priority === 'Alta' ? 'text-rose-600' : 'text-amber-600'}">${f.priority}</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">${f.unitId} · ${f.driver} · ${f.folio}</p>
+                </div>
+            `).join('') || '<p class="text-sm text-slate-400">Sin fallas abiertas.</p>';
+        }
+
+        function renderOpTrips(state) {
+            const q = (document.getElementById('trip-search').value || '').toLowerCase();
+            const rows = state.trips.filter((t) => {
+                const hay = [t.folio, t.unitId, t.driver, t.origin, t.destination, t.client].join(' ').toLowerCase();
+                return hay.includes(q);
+            });
+            document.getElementById('op-trips').innerHTML = rows.map((t) => {
+                const cost = AccaseStore.tripCost(t);
+                const margin = t.revenue - cost;
+                return `<tr>
+                    <td class="p-3 font-mono text-xs font-bold text-indigo-600">${t.folio}${AccaseStore.isTripInvoiced(state, t.folio) ? '<div class="text-[10px] text-emerald-600 font-semibold">Facturado</div>' : ''}</td>
+                    <td class="p-3"><div class="font-semibold">${t.unitId}</div><div class="text-xs text-slate-400">${t.driver}</div></td>
+                    <td class="p-3">${t.origin} ➔ ${t.destination}<div class="text-xs text-slate-400">${t.client}</div></td>
+                    <td class="p-3 text-right text-rose-500">${AccaseStore.formatMoney(cost)}</td>
+                    <td class="p-3 text-right font-semibold">${AccaseStore.formatMoney(margin)}</td>
+                    <td class="p-3">
+                        <select data-folio="${t.folio}" class="trip-status text-xs border rounded-lg px-2 py-1 bg-white">
+                            ${['Programado','En Carga','En Tránsito','Descargando','Completado'].map((s) => `<option ${s === t.status ? 'selected' : ''}>${s}</option>`).join('')}
+                        </select>
+                    </td>
+                </tr>`;
+            }).join('') || '<tr><td class="p-4 text-slate-400" colspan="6">No hay coincidencias.</td></tr>';
+        }
+
+        function renderOpUnits(state) {
+            const rows = AccaseStore.unitRows(state);
+            document.getElementById('op-units').innerHTML = rows.map((u) => `
+                <div class="border border-slate-200 p-4 rounded-lg bg-slate-50">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-bold">${u.id}</span>
+                        ${badge(u.status)}
+                    </div>
+                    <p class="text-xs text-slate-500 mb-3">Chofer: ${u.driver} · Odómetro: ${u.odometer.toLocaleString('es-MX')} km</p>
+                    <div class="text-xs space-y-1 border-t border-slate-200 pt-2 text-slate-600">
+                        <div class="flex justify-between gap-2"><span>Ubicación:</span> <span class="font-medium text-right">${u.gps}</span></div>
+                        <div class="flex justify-between"><span>Margen mes:</span> <span class="font-medium">${u.marginPct.toFixed(1)}%</span></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderOpFaults(state) {
+            const open = state.faults.filter((f) => f.status !== 'finalizado');
+            document.getElementById('op-faults').innerHTML = open.map((f) => `
+                <div class="border border-slate-200 p-4 rounded-lg bg-slate-50">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="font-bold">${f.title}</span>
+                        <span class="text-xs ${f.priority === 'Alta' ? 'bg-red-100' : 'bg-amber-100'} px-2 py-0.5 rounded">${f.priority}</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-3">${f.driver} · ${f.unitId} · ${f.folio}</p>
+                    <div class="text-xs border-t border-slate-200 pt-2 flex justify-between">
+                        <span>Costo</span>
+                        <span class="font-medium">${f.cost ? AccaseStore.formatMoney(f.cost) : 'En revisión'}</span>
+                    </div>
+                </div>
+            `).join('') || '<p class="text-sm text-slate-400">Sin fallas abiertas.</p>';
+        }
+
+        function renderAdmin(state) {
+            const empty = state.trips.length === 0;
+            document.getElementById('admin-empty').classList.toggle('hidden', !empty);
+            const selectable = state.trips.filter((t) => t.status !== 'Programado' && !AccaseStore.isTripInvoiced(state, t.folio));
+            document.getElementById('invoice-trip').innerHTML = selectable.map((t) =>
+                `<option value="${t.folio}">${t.folio} · ${t.client} · ${AccaseStore.formatMoney(t.revenue)}</option>`
+            ).join('') || '<option value="">Sin viajes facturables (registra o avanza un viaje en operativo)</option>';
+            document.getElementById('invoice-table').innerHTML = state.invoices.map((inv) => `
+                <tr>
+                    <td class="p-3 font-mono text-xs">${inv.folio}</td>
+                    <td class="p-3 text-xs">${inv.tripFolio || '—'}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 ${inv.type.indexOf('Gasto') >= 0 ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'} rounded text-xs">${inv.type}</span></td>
+                    <td class="p-3">${inv.party}</td>
+                    <td class="p-3 text-right font-semibold">${AccaseStore.formatMoney(inv.amount)}</td>
+                    <td class="p-3 text-emerald-600 text-xs font-medium"><i class="fa-solid fa-circle-check"></i> ${inv.sat}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderReports(state) {
+            const rows = AccaseStore.unitRows(state);
+            document.getElementById('report-preview').innerHTML = `
+                <table class="w-full text-sm mt-2">
+                    <thead class="text-xs uppercase text-slate-400">
+                        <tr><th class="p-2 text-left">Unidad</th><th class="p-2 text-right">Ingreso</th><th class="p-2 text-right">Gasto</th><th class="p-2 text-right">Margen</th></tr>
+                    </thead>
+                    <tbody>${rows.map((u) => `<tr class="border-t">
+                        <td class="p-2">${u.id} ${u.model}</td>
+                        <td class="p-2 text-right text-emerald-600">${AccaseStore.formatMoney(u.income)}</td>
+                        <td class="p-2 text-right text-rose-500">${AccaseStore.formatMoney(u.expenses)}</td>
+                        <td class="p-2 text-right">${u.marginPct.toFixed(1)}%</td>
+                    </tr>`).join('')}</tbody>
+                </table>`;
+        }
+
+        function renderUnits(state) {
+            const k = AccaseStore.kpis(state);
+            document.getElementById('unit-kpis').innerHTML = [
+                ['Ingresos flota', AccaseStore.formatMoney(k.billed), 'text-emerald-600', 'bg-emerald-50 text-emerald-600', 'fa-circle-arrow-up'],
+                ['Gastos flota', AccaseStore.formatMoney(k.expenses), 'text-rose-600', 'bg-rose-50 text-rose-600', 'fa-circle-arrow-down'],
+                ['Utilidad neta', AccaseStore.formatMoney(k.margin), 'text-indigo-600', 'bg-indigo-50 text-indigo-600', 'fa-scale-balanced'],
+                ['Margen promedio', k.marginPct.toFixed(1) + '%', 'text-blue-600', 'bg-blue-50 text-blue-600', 'fa-percent']
+            ].map(([l, v, valueTone, iconTone, i]) => `
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">${l}</span>
+                        <h3 class="text-2xl font-bold ${valueTone} mt-1">${v}</h3>
+                    </div>
+                    <div class="${iconTone} p-3 rounded-lg"><i class="fa-solid ${i} text-xl"></i></div>
+                </div>
+            `).join('');
+            const rows = AccaseStore.unitRows(state);
+            document.getElementById('unit-table').innerHTML = rows.map((u) => {
+                const width = Math.max(0, Math.min(100, u.marginPct));
+                const bar = u.profit < 0 ? 'bg-rose-500' : 'bg-emerald-500';
+                return `<tr class="hover:bg-slate-50">
+                    <td class="p-3.5 font-semibold"><i class="fa-solid fa-truck text-indigo-500 mr-2"></i>${u.id} (${u.model})</td>
+                    <td class="p-3.5">${u.driver}</td>
+                    <td class="p-3.5">${u.route}</td>
+                    <td class="p-3.5 text-right text-emerald-600 font-semibold">${AccaseStore.formatMoney(u.income)}</td>
+                    <td class="p-3.5 text-right text-rose-500">${AccaseStore.formatMoney(u.expenses)}</td>
+                    <td class="p-3.5 text-right font-bold ${u.profit < 0 ? 'text-rose-600' : ''}">${AccaseStore.formatMoney(u.profit)}</td>
+                    <td class="p-3.5">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 h-1.5 bg-slate-100 rounded"><div class="bar-fill h-1.5 ${bar} rounded" style="width:${width}%"></div></div>
+                            <span class="text-xs font-semibold">${u.marginPct.toFixed(1)}%</span>
+                        </div>
+                    </td>
+                    <td class="p-3.5">${badge(u.status)}</td>
+                </tr>`;
+            }).join('');
+            document.getElementById('unit-foot').innerHTML = `<tr>
+                <td colspan="3" class="p-3.5">Total flota</td>
+                <td class="p-3.5 text-right text-emerald-600">${AccaseStore.formatMoney(k.billed)}</td>
+                <td class="p-3.5 text-right text-rose-600">${AccaseStore.formatMoney(k.expenses)}</td>
+                <td class="p-3.5 text-right text-indigo-700">${AccaseStore.formatMoney(k.margin)}</td>
+                <td class="p-3.5">${k.marginPct.toFixed(1)}%</td>
+                <td class="p-3.5">${state.units.length} unidades</td>
+            </tr>`;
+        }
+
+        function renderSync(state) {
+            document.getElementById('of-sync').textContent = 'Sincronizado ' + AccaseStore.formatTimeAgo(state.lastSync);
+        }
+
+        function renderAll() {
+            const state = AccaseStore.load();
+            renderKpis(state);
+            renderDashTrips(state);
+            renderAlerts(state);
+            renderOpTrips(state);
+            renderOpUnits(state);
+            renderOpFaults(state);
+            renderAdmin(state);
+            renderReports(state);
+            renderUnits(state);
+            renderSync(state);
+        }
+
+        function syncFleet() {
+            AccaseStore.syncOnlineFleet();
+            renderAll();
+            toast('OnlineFleet sincronizado (simulado). Se actualizaron fallas.');
+        }
+
+        function invoiceSelectedTrip() {
+            const state = AccaseStore.load();
+            const folio = document.getElementById('invoice-trip').value;
+            const trip = state.trips.find((t) => t.folio === folio);
+            if (!trip) {
+                toast('Administrativo depende de operativo: registra o avanza un viaje.');
+                return;
+            }
+            if (AccaseStore.isTripInvoiced(state, trip.folio)) {
+                toast('Ese viaje ya tiene factura de ingreso.');
+                return;
+            }
+            AccaseStore.addInvoice({
+                folio: AccaseStore.nextInvoiceFolio(state),
+                tripFolio: trip.folio,
+                type: 'Ingreso',
+                party: trip.client,
+                amount: trip.revenue,
+                sat: 'Válida',
+                createdAt: new Date().toISOString()
+            });
+            renderAll();
+            toast('Factura ligada al viaje ' + trip.folio);
+        }
+
+        function exportReport(name) {
+            const state = AccaseStore.load();
+            const rows = AccaseStore.unitRows(state);
+            const csv = ['Unidad,Ingresos,Gastos,Utilidad,Margen']
+                .concat(rows.map((u) => [u.id, u.income, u.expenses, u.profit, u.marginPct.toFixed(1) + '%'].join(',')))
+                .join('\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = name.replace(/\s+/g, '-').toLowerCase() + '.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+            toast(name + ' exportado');
+        }
+
+        document.getElementById('trip-search').addEventListener('input', () => renderOpTrips(AccaseStore.load()));
+        document.getElementById('op-trips').addEventListener('change', (ev) => {
+            const select = ev.target.closest('.trip-status');
+            if (!select) return;
+            AccaseStore.updateTripStatus(select.dataset.folio, select.value);
+            renderAll();
+            toast('Estatus de ' + select.dataset.folio + ' actualizado');
+        });
+
+        const drop = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
+        drop.addEventListener('click', () => fileInput.click());
+        drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('bg-indigo-50'); });
+        drop.addEventListener('dragleave', () => drop.classList.remove('bg-indigo-50'));
+        drop.addEventListener('drop', (e) => {
+            e.preventDefault();
+            drop.classList.remove('bg-indigo-50');
+            if (e.dataTransfer.files[0]) mockUpload(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files[0]) mockUpload(fileInput.files[0]);
+        });
+
+        function mockUpload(file) {
+            const state = AccaseStore.load();
+            AccaseStore.addInvoice({
+                folio: 'XML-' + Date.now().toString().slice(-6),
+                tripFolio: state.trips[0] ? state.trips[0].folio : '—',
+                type: file.name.toLowerCase().includes('diesel') ? 'Gasto (Diésel)' : 'Ingreso',
+                party: file.name,
+                amount: 0,
+                sat: 'Pendiente',
+                createdAt: new Date().toISOString()
+            });
+            renderAll();
+            toast('Comprobante simulado: ' + file.name);
+        }
+
+        const DEMO_STEPS = [
+            { tab: 'dashboard', title: 'KPIs de la flota', text: 'Aquí el cliente ve viajes activos, gasto y margen. Los números salen de operativo, no están sueltos.' },
+            { tab: 'operativo', title: 'Módulo operativo', text: 'Se registran viajes y se actualiza el estatus. Sin este módulo, administrativo no tiene qué facturar.' },
+            { tab: 'operativo', title: 'Fallas OnlineFleet', text: 'Las fallas se simulan como si vinieran de la API. “Sincronizar API” trae un evento nuevo para la demo.' },
+            { tab: 'administrativo', title: 'Facturación', text: 'Solo se facturan viajes ya avanzados en operativo. Un viaje no se factura dos veces.' },
+            { tab: 'unidades', title: 'Costo y margen por unidad', text: 'Cada camión cruza flete, diésel, casetas, anticipo y taller. C-105 muestra pérdida por mantenimiento.' }
+        ];
+        let demoIndex = 0;
+
+        function startDemo() {
+            demoIndex = 0;
+            document.getElementById('demo-panel').classList.remove('hidden');
+            showDemoStep();
+        }
+        function showDemoStep() {
+            const step = DEMO_STEPS[demoIndex];
+            switchTab(step.tab);
+            document.getElementById('demo-title').textContent = step.title;
+            document.getElementById('demo-text').textContent = step.text;
+            document.getElementById('demo-step').textContent = (demoIndex + 1) + ' / ' + DEMO_STEPS.length;
+            document.querySelector('#demo-panel button[onclick="nextDemo()"]').textContent = demoIndex === DEMO_STEPS.length - 1 ? 'Terminar' : 'Siguiente';
+        }
+        function nextDemo() {
+            if (demoIndex >= DEMO_STEPS.length - 1) {
+                stopDemo();
+                return;
+            }
+            demoIndex += 1;
+            showDemoStep();
+        }
+        function stopDemo() {
+            document.getElementById('demo-panel').classList.add('hidden');
+        }
+
+        document.querySelectorAll('.nav-link').forEach((a) => a.addEventListener('click', (e) => e.preventDefault()));
+        window.addEventListener('hashchange', () => {
+            const id = location.hash.replace('#', '');
+            if (TITLES[id]) switchTab(id);
+        });
+        renderAll();
+        const initial = location.hash.replace('#', '');
+        if (TITLES[initial]) switchTab(initial);
+    </script>
+</body>
+</html>

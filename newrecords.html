@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accase · Nuevo registro de viaje</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Layout Container -->
+    <div class="flex flex-1 h-screen overflow-hidden">
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto bg-slate-50 flex flex-col justify-between">
+            
+            <div class="p-6 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
+                
+                <!-- Header Breadcrumb & Actions -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+                    <div>
+                        <div class="flex items-center space-x-2 text-xs font-medium text-slate-400 mb-1">
+                            <a href="index.html" class="hover:text-indigo-600">Dashboard</a>
+                            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                            <span class="text-indigo-600 font-semibold">Nuevo registro de viaje</span>
+                        </div>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Registro de Nueva Operación</h2>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <a href="index.html" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 font-semibold text-sm transition shadow-sm">
+                            Volver al panel
+                        </a>
+                        <button type="button" onclick="resetForm()" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 font-semibold text-sm transition shadow-sm flex items-center space-x-2">
+                            <i class="fa-solid fa-rotate-left text-slate-400"></i>
+                            <span>Limpiar Campos</span>
+                        </button>
+                        <button type="button" onclick="saveDraft()" class="px-4 py-2.5 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold text-sm transition flex items-center space-x-2">
+                            <i class="fa-regular fa-bookmark"></i>
+                            <span>Borrador</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Form Grid (Left: Input Sections, Right: Live Summary) -->
+                <form id="tripForm" onsubmit="handleFormSubmit(event)" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                    <!-- LEFT COLUMN: Form Inputs (8 cols) -->
+                    <div class="lg:col-span-8 space-y-6">
+
+                        <!-- SECTION 1: Datos de la Operación -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4">
+                            <div class="flex items-center space-x-3 border-b border-slate-100 pb-3">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">1</div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-base">Datos de la Operación y Asignación</h3>
+                                    <p class="text-xs text-slate-500">Unidad, operador y folio fiscal de transporte</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                                <!-- Unidad / Camión -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Unidad / Camión *</label>
+                                    <div class="relative">
+                                        <select id="truck" required onchange="calculateFinancials()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition appearance-none">
+                                            <option value="">-- Seleccionar Unidad --</option>
+                                        </select>
+                                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-3.5 text-slate-400 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Operador / Chofer -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Operador Asignado *</label>
+                                    <div class="relative">
+                                        <select id="driver" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition appearance-none">
+                                            <option value="">-- Seleccionar Operador --</option>
+                                            <option value="Roberto Gómez">Roberto Gómez (Lic. Federal A-10293)</option>
+                                            <option value="Carlos Mendoza">Carlos Mendoza (Lic. Federal B-99212)</option>
+                                            <option value="Jesús Hernández">Jesús Hernández (Lic. Federal A-44819)</option>
+                                            <option value="Mario Aguilar">Mario Aguilar (Lic. Federal A-77310)</option>
+                                        </select>
+                                        <i class="fa-solid fa-chevron-down absolute right-3.5 top-3.5 text-slate-400 text-xs pointer-events-none"></i>
+                                    </div>
+                                </div>
+
+                                <!-- Cliente / Empresa -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Cliente a Facturar *</label>
+                                    <div class="relative">
+                                        <input type="text" id="client" required placeholder="Ej. Logística Comercial S.A. de C.V." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                    </div>
+                                </div>
+
+                                <!-- Folio / Carta Porte -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Folio Carta Porte / Viaje *</label>
+                                    <div class="relative">
+                                        <input type="text" id="cartaPorte" required placeholder="Ej. CP-2026-089" value="CP-2026-094" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono text-indigo-600 font-bold focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                        <i class="fa-solid fa-barcode absolute right-3.5 top-3.5 text-slate-400 text-sm"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 2: Ruta y Horarios -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4">
+                            <div class="flex items-center space-x-3 border-b border-slate-100 pb-3">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">2</div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-base">Ruta y Programación de Horarios</h3>
+                                    <p class="text-xs text-slate-500">Origen, destino y fechas estimadas de la ruta</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                                <!-- Origen -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Origen *</label>
+                                    <div class="relative">
+                                        <i class="fa-solid fa-location-dot absolute left-3.5 top-3.5 text-emerald-500 text-sm"></i>
+                                        <input type="text" id="origin" required placeholder="Ej. Mérida, Yucatán" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                    </div>
+                                </div>
+
+                                <!-- Destino -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Destino *</label>
+                                    <div class="relative">
+                                        <i class="fa-solid fa-location-pin-lock absolute left-3.5 top-3.5 text-rose-500 text-sm"></i>
+                                        <input type="text" id="destination" required placeholder="Ej. CDMX, Terminal Central" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                    </div>
+                                </div>
+
+                                <!-- Salida Estimada -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Fecha/Hora Salida Estimada *</label>
+                                    <input type="datetime-local" id="departureTime" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                </div>
+
+                                <!-- Llegada Estimada -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Fecha/Hora Llegada Estimada *</label>
+                                    <input type="datetime-local" id="arrivalTime" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 3: Parámetros Operativos y Diésel -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4">
+                            <div class="flex items-center space-x-3 border-b border-slate-100 pb-3">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">3</div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-base">Asignación Financiera & Diésel</h3>
+                                    <p class="text-xs text-slate-500">Parámetros de combustible, viáticos y costo de flete</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-1">
+                                <!-- Precio Cobrado al Cliente -->
+                                <div class="md:col-span-2 lg:col-span-3 bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-100 mb-1">
+                                    <label class="block text-xs font-bold text-indigo-900 uppercase tracking-wider mb-1">Precio Cobrado al Cliente (Flete Total MXN) *</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3.5 top-2.5 font-bold text-indigo-600 text-lg">$</span>
+                                        <input type="number" id="revenue" required min="0" step="100" placeholder="0.00" oninput="calculateFinancials()" class="w-full bg-white border border-indigo-200 rounded-lg pl-8 pr-3.5 py-2 text-lg font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                    </div>
+                                </div>
+
+                                <!-- Litros Diésel -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Litros Diésel Asignados</label>
+                                    <div class="relative">
+                                        <input type="number" id="dieselLiters" min="0" placeholder="350" oninput="calculateFinancials()" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                        <span class="absolute right-3.5 top-2.5 text-xs font-bold text-slate-400">Lts</span>
+                                    </div>
+                                    <span class="text-[10px] text-slate-400 mt-0.5 block">Precio estimado: $24.50/L</span>
+                                </div>
+
+                                <!-- Casetas Estimadas -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Casetas Estimadas ($ MXN)</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3.5 top-2.5 text-slate-400 text-sm">$</span>
+                                        <input type="number" id="tollsCost" min="0" placeholder="1850" oninput="calculateFinancials()" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-8 pr-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                    </div>
+                                </div>
+
+                                <!-- Anticipo Operador -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Anticipo Operador ($ MXN)</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3.5 top-2.5 text-slate-400 text-sm">$</span>
+                                        <input type="number" id="advanceDriver" min="0" placeholder="2000" oninput="calculateFinancials()" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-8 pr-3.5 py-2.5 text-sm font-semibold text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                    </div>
+                                </div>
+
+                                <!-- Odómetro Inicial -->
+                                <div class="md:col-span-2 lg:col-span-3">
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Odómetro de Salida (Kilometraje)</label>
+                                    <div class="relative">
+                                        <input type="number" id="odometer" min="0" placeholder="142500" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-mono text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                        <span class="absolute right-3.5 top-2.5 text-xs font-bold text-slate-400">KM</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION 4: Detalles de Carga -->
+                        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4">
+                            <div class="flex items-center space-x-3 border-b border-slate-100 pb-3">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">4</div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 text-base">Detalles de Carga y Estatus</h3>
+                                    <p class="text-xs text-slate-500">Tipo de producto, peso y estado inicial del embarque</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                                <!-- Tipo de Mercancía -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Mercancía / Producto *</label>
+                                    <input type="text" id="cargoType" required placeholder="Ej. Abarrotes / Refrescos" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                </div>
+
+                                <!-- Peso -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Peso Total</label>
+                                    <div class="relative">
+                                        <input type="number" id="cargoWeight" step="0.1" min="0" placeholder="22.5" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                        <span class="absolute right-3.5 top-2.5 text-xs font-bold text-slate-400">Tons</span>
+                                    </div>
+                                </div>
+
+                                <!-- Estatus Inicial -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Estatus Inicial *</label>
+                                    <select id="status" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm text-slate-800 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                                        <option value="Programado">Programado</option>
+                                        <option value="En Carga">En Carga</option>
+                                        <option value="En Tránsito">En Tránsito</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT COLUMN: Real-time Live Summary (4 cols) -->
+                    <div class="lg:col-span-4 space-y-6">
+                        
+                        <!-- Sticky Live Calculation Card -->
+                        <div class="bg-slate-900 text-white rounded-2xl shadow-xl p-6 sticky top-6 space-y-6 border border-slate-800">
+                            
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                                <div class="flex items-center space-x-2.5">
+                                    <i class="fa-solid fa-calculator text-indigo-400 text-lg"></i>
+                                    <h3 class="font-bold text-base tracking-wide">Resumen Financiero</h3>
+                                </div>
+                                <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">Cálculo en vivo</span>
+                            </div>
+
+                            <!-- Cost Breakdown Items -->
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between items-center text-slate-400">
+                                    <span>Ingreso Flete:</span>
+                                    <span id="summaryRevenue" class="font-bold text-white text-base">$0.00</span>
+                                </div>
+                                
+                                <div class="border-t border-slate-800/80 pt-2.5 space-y-2 text-xs">
+                                    <div class="flex justify-between text-slate-400">
+                                        <span>Diésel Estimado:</span>
+                                        <span id="summaryDieselCost" class="font-mono text-slate-300">$0.00</span>
+                                    </div>
+                                    <div class="flex justify-between text-slate-400">
+                                        <span>Casetas Estimadas:</span>
+                                        <span id="summaryTollsCost" class="font-mono text-slate-300">$0.00</span>
+                                    </div>
+                                    <div class="flex justify-between text-slate-400">
+                                        <span>Anticipo Chofer:</span>
+                                        <span id="summaryAdvanceCost" class="font-mono text-slate-300">$0.00</span>
+                                    </div>
+                                </div>
+
+                                <!-- Total Direct Expenses -->
+                                <div class="flex justify-between items-center border-t border-slate-800 pt-3 text-rose-400">
+                                    <span class="font-medium text-xs uppercase tracking-wider">Gasto Total Estimado:</span>
+                                    <span id="summaryTotalExpenses" class="font-bold font-mono text-sm">-$0.00</span>
+                                </div>
+                            </div>
+
+                            <!-- Net Profit & Margin Card -->
+                            <div class="bg-slate-800/80 rounded-xl p-4 border border-slate-700/60 space-y-2">
+                                <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Margen Operativo Estimado</span>
+                                <div class="flex items-baseline justify-between">
+                                    <span id="summaryNetMargin" class="text-2xl font-black text-emerald-400 tracking-tight">$0.00</span>
+                                    <span id="summaryMarginPercentage" class="text-xs font-bold px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">0.0%</span>
+                                </div>
+                                <p class="text-[11px] text-slate-400 pt-1">
+                                    <i class="fa-solid fa-circle-info text-indigo-400 mr-1"></i>
+                                    Rentabilidad sugerida objetivo: > 45%
+                                </p>
+                            </div>
+
+                            <!-- Form Main Actions -->
+                            <div class="space-y-3 pt-2">
+                                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-600/30 transition duration-200 flex items-center justify-center space-x-2">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                    <span>Guardar y Notificar Operador</span>
+                                </button>
+
+                                <a href="index.html" class="block w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold py-2.5 px-4 rounded-xl transition text-xs text-center border border-slate-700">
+                                    Cancelar operación
+                                </a>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </form>
+
+                <!-- SECTION 5: Historial / Registros Recientes -->
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden mt-8">
+                    <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base">Registros de Viaje Recientes</h3>
+                            <p class="text-xs text-slate-500">Últimos folios creados en la plataforma</p>
+                        </div>
+                        <span id="trip-count" class="text-xs font-semibold text-slate-400 bg-slate-100 px-3 py-1 rounded-full w-fit">0 viajes</span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-slate-400 text-xs uppercase font-semibold border-b border-slate-100">
+                                <tr>
+                                    <th class="py-3.5 px-5">Folio / Carta Porte</th>
+                                    <th class="py-3.5 px-5">Unidad & Chofer</th>
+                                    <th class="py-3.5 px-5">Ruta</th>
+                                    <th class="py-3.5 px-5">Cliente</th>
+                                    <th class="py-3.5 px-5 text-right">Flete ($)</th>
+                                    <th class="py-3.5 px-5 text-center">Estatus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentTripsTable" class="divide-y divide-slate-100">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="border-t border-slate-200 bg-white py-4 px-8 text-center text-xs text-slate-400 mt-12">
+                Accase · Módulo operativo · Registro de viajes
+            </footer>
+
+        </main>
+    </div>
+
+    <!-- Notification Toast Modal -->
+    <div id="successModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-center space-y-4 animate-in fade-in zoom-in duration-200">
+            <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">¡Viaje Registrado con Éxito!</h3>
+            <p class="text-xs text-slate-500 leading-relaxed">
+                El nuevo viaje con Folio <span id="modalFolio" class="font-mono font-bold text-indigo-600"></span> ha sido programado. Se ha enviado una notificación automática con los detalles de ruta al operador.
+            </p>
+            <div class="pt-2">
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button type="button" onclick="closeModal()" class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition text-sm">
+                        Registrar otro
+                    </button>
+                    <a href="index.html#operativo" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl transition text-sm text-center">
+                        Ver en operativo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Interactions & Live Calculations -->
+    <script src="js/store.js"></script>
+    <script>
+        const DIESEL_PRICE_PER_LITER = AccaseStore.DIESEL_PRICE;
+
+        function statusBadgeClass(status) {
+            if (status === 'En Tránsito') return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+            if (status === 'En Carga' || status === 'Descargando') return 'bg-amber-100 text-amber-800 border-amber-200';
+            if (status === 'Completado') return 'bg-slate-200 text-slate-700 border-slate-300';
+            return 'bg-indigo-100 text-indigo-800 border-indigo-200';
+        }
+
+        function renderRecentTrips() {
+            const trips = AccaseStore.load().trips;
+            document.getElementById('trip-count').textContent = trips.length + ' viajes';
+            document.getElementById('recentTripsTable').innerHTML = trips.map((t) => `
+                <tr class="hover:bg-slate-50/80 transition">
+                    <td class="py-3.5 px-5 font-mono text-xs font-bold text-indigo-600">${t.folio}</td>
+                    <td class="py-3.5 px-5">
+                        <div class="font-semibold text-slate-800">${t.unitId}</div>
+                        <div class="text-xs text-slate-400">${t.driver}</div>
+                    </td>
+                    <td class="py-3.5 px-5 font-medium text-slate-700">${t.origin} ➔ ${t.destination}</td>
+                    <td class="py-3.5 px-5">${t.client}</td>
+                    <td class="py-3.5 px-5 text-right font-bold text-slate-800">${formatCurrency(t.revenue)}</td>
+                    <td class="py-3.5 px-5 text-center">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadgeClass(t.status)} border">${t.status}</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function localDateTimeValue(date) {
+            const pad = (n) => String(n).padStart(2, '0');
+            return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+        }
+
+        // Pre-fill default datetimes
+        window.onload = function() {
+            const state = AccaseStore.load();
+            const truck = document.getElementById('truck');
+            state.units.forEach((u) => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.textContent = u.id + ' (' + u.model + ' - Placas: ' + u.plates + ')';
+                truck.appendChild(opt);
+            });
+
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            document.getElementById('departureTime').value = localDateTimeValue(now);
+            document.getElementById('arrivalTime').value = localDateTimeValue(tomorrow);
+
+            // Populate initial calculations
+            document.getElementById('revenue').value = 42000;
+            document.getElementById('dieselLiters').value = 380;
+            document.getElementById('tollsCost').value = 2400;
+            document.getElementById('advanceDriver').value = 2500;
+            document.getElementById('origin').value = "Mérida, Yucatán";
+            document.getElementById('destination').value = "CDMX, Central de Abastos";
+            document.getElementById('cargoType').value = "Cajas de Alimentos";
+            document.getElementById('cargoWeight').value = "18.5";
+
+            calculateFinancials();
+            renderRecentTrips();
+        };
+
+        // Real-time calculation function
+        function calculateFinancials() {
+            const revenue = parseFloat(document.getElementById('revenue').value) || 0;
+            const dieselLiters = parseFloat(document.getElementById('dieselLiters').value) || 0;
+            const tollsCost = parseFloat(document.getElementById('tollsCost').value) || 0;
+            const advanceDriver = parseFloat(document.getElementById('advanceDriver').value) || 0;
+
+            const dieselCost = dieselLiters * DIESEL_PRICE_PER_LITER;
+            const totalExpenses = dieselCost + tollsCost + advanceDriver;
+            const netMargin = revenue - totalExpenses;
+            const marginPercentage = revenue > 0 ? ((netMargin / revenue) * 100) : 0;
+
+            // Update UI elements
+            document.getElementById('summaryRevenue').innerText = formatCurrency(revenue);
+            document.getElementById('summaryDieselCost').innerText = formatCurrency(dieselCost);
+            document.getElementById('summaryTollsCost').innerText = formatCurrency(tollsCost);
+            document.getElementById('summaryAdvanceCost').innerText = formatCurrency(advanceDriver);
+            document.getElementById('summaryTotalExpenses').innerText = '-' + formatCurrency(totalExpenses);
+
+            const marginEl = document.getElementById('summaryNetMargin');
+            const percentEl = document.getElementById('summaryMarginPercentage');
+
+            marginEl.innerText = formatCurrency(netMargin);
+            percentEl.innerText = marginPercentage.toFixed(1) + '%';
+
+            // Visual feedback on margin health
+            if (netMargin < 0) {
+                marginEl.className = "text-2xl font-black text-rose-500 tracking-tight";
+                percentEl.className = "text-xs font-bold px-2 py-1 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30";
+            } else if (marginPercentage < 30) {
+                marginEl.className = "text-2xl font-black text-amber-400 tracking-tight";
+                percentEl.className = "text-xs font-bold px-2 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30";
+            } else {
+                marginEl.className = "text-2xl font-black text-emerald-400 tracking-tight";
+                percentEl.className = "text-xs font-bold px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+            }
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
+        }
+
+        // Form Submission Logic
+        function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const folio = document.getElementById('cartaPorte').value || 'CP-2026-NEW';
+            const truck = document.getElementById('truck').value || 'Sin Asignar';
+            const driver = document.getElementById('driver').value || 'Sin Asignar';
+            const origin = document.getElementById('origin').value || 'Origen';
+            const destination = document.getElementById('destination').value || 'Destino';
+            const client = document.getElementById('client').value || 'Cliente General';
+            const revenue = parseFloat(document.getElementById('revenue').value) || 0;
+            const status = document.getElementById('status').value || 'Programado';
+
+            AccaseStore.addTrip({
+                folio,
+                unitId: truck,
+                driver,
+                client,
+                origin,
+                destination,
+                cargo: document.getElementById('cargoType').value,
+                status,
+                revenue,
+                dieselLiters: parseFloat(document.getElementById('dieselLiters').value) || 0,
+                tolls: parseFloat(document.getElementById('tollsCost').value) || 0,
+                advance: parseFloat(document.getElementById('advanceDriver').value) || 0,
+                createdAt: new Date().toISOString()
+            });
+            renderRecentTrips();
+
+            // Show confirmation modal
+            document.getElementById('modalFolio').innerText = folio;
+            const modal = document.getElementById('successModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('successModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            
+            // Increment folio automatically for next entry
+            const currentFolio = document.getElementById('cartaPorte').value;
+            const match = currentFolio.match(/(\d+)$/);
+            if (match) {
+                const nextNum = parseInt(match[0], 10) + 1;
+                document.getElementById('cartaPorte').value = currentFolio.replace(/\d+$/, nextNum.toString().padStart(3, '0'));
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('tripForm').reset();
+            calculateFinancials();
+        }
+
+        function saveDraft() {
+            alert('Borrador guardado correctamente. Podrás continuar la edición más tarde.');
+        }
+    </script>
+</body>
+</html>

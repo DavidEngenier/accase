@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accase · Fallas actuales</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <div class="flex flex-1 min-h-screen overflow-hidden">
+        <main class="flex-1 overflow-y-auto bg-slate-50 flex flex-col justify-between">
+            <div class="p-6 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+                <!-- ========== ENCABEZADO: migas de pan + título ========== -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
+                    <div>
+                        <nav aria-label="Migas de pan" class="flex items-center space-x-2 text-xs font-medium text-slate-400 mb-1">
+                            <ol class="flex items-center space-x-2">
+                                <li><a href="index.html" class="hover:text-indigo-600">Dashboard</a></li>
+                                <li aria-hidden="true"><i class="fa-solid fa-chevron-right text-[10px]"></i></li>
+                                <li class="text-indigo-600 font-semibold" aria-current="page">Reporte de fallas</li>
+                            </ol>
+                        </nav>
+                        <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Fallas actuales</h1>
+                        <p class="text-sm text-slate-500 mt-1">Datos simulados de OnlineFleet. El costo y estatus sí se pueden actualizar para la demo.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" id="syncBtn" class="px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold">
+                            Sincronizar OnlineFleet
+                        </button>
+                        <a href="index.html" class="px-4 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 text-sm font-semibold">Volver</a>
+                    </div>
+                </div>
+
+                <!-- ========== MÉTRICAS: conteos (3) + gasto (1). Los números se pintan desde JS ========== -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <article class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Finalizadas</span>
+                            <p class="text-2xl font-bold text-emerald-600 mt-1" id="finalizadas">0</p>
+                        </div>
+                        <div class="bg-emerald-50 p-3 rounded-lg text-emerald-600" aria-hidden="true">
+                            <i class="fa-solid fa-circle-check text-xl"></i>
+                        </div>
+                    </article>
+
+                    <article class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Gastos totales</span>
+                            <p class="text-2xl font-bold text-rose-600 mt-1" id="totalCost">$0</p>
+                        </div>
+                        <div class="bg-rose-50 p-3 rounded-lg text-rose-600" aria-hidden="true">
+                            <i class="fa-solid fa-circle-arrow-down text-xl"></i>
+                        </div>
+                    </article>
+
+                    <article class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">En reparación</span>
+                            <p class="text-2xl font-bold text-indigo-600 mt-1" id="enReparacion">0</p>
+                        </div>
+                        <div class="bg-indigo-50 p-3 rounded-lg text-indigo-600" aria-hidden="true">
+                            <i class="fa-solid fa-wrench text-xl"></i>
+                        </div>
+                    </article>
+
+                    <article class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sin reparar</span>
+                            <p class="text-2xl font-bold text-slate-800 mt-1" id="sinReparar">0</p>
+                        </div>
+                        <div class="bg-amber-50 p-3 rounded-lg text-amber-600" aria-hidden="true">
+                            <i class="fa-solid fa-times-circle text-xl"></i>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- ========== RESUMEN: total de registros en el arreglo (no en las filas visibles) ========== -->
+                <p class="text-lg font-bold text-slate-800">
+                    Total de fallas: <span id="totalFallas">0</span>
+                </p>
+
+                <!-- ========== TABLA: el tbody se llena con renderTabla(); aquí solo va el esqueleto ========== -->
+                <section class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden mt-8" aria-labelledby="titulo-registros">
+                    <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <h2 id="titulo-registros" class="font-bold text-slate-800 text-base">Registros de fallas</h2>
+                            <p class="text-xs text-slate-500">Incidencias abiertas, en reparación o finalizadas</p>
+                        </div>
+
+                        <!-- Buscador: filtra folio, unidad y chofer. El icono justifica el padding pl-8 -->
+                        <div class="relative">
+                            <label for="buscadorInput" class="sr-only">Buscar fallas</label>
+                            <i class="fa-solid fa-magnifying-glass pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400" aria-hidden="true"></i>
+                            <input
+                                type="search"
+                                id="buscadorInput"
+                                placeholder="Buscar unidad, chofer, folio..."
+                                autocomplete="off"
+                                aria-controls="recentTripsTable"
+                                class="h-9 w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 sm:w-56"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-slate-400 text-xs uppercase font-semibold border-b border-slate-100">
+                                <tr>
+                                    <th scope="col" class="py-3.5 px-5">Folio / Carta porte</th>
+                                    <th scope="col" class="py-3.5 px-5">Unidad y chofer</th>
+                                    <th scope="col" class="py-3.5 px-5">Reportado</th>
+                                    <th scope="col" class="py-3.5 px-5 text-right">Costo de reparación</th>
+                                    <th scope="col" class="py-3.5 px-5 text-center">Estatus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentTripsTable" class="divide-y divide-slate-100">
+                                <!-- Las filas se insertan desde JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- ========== PIE ========== -->
+            <footer class="border-t border-slate-200 bg-white py-4 px-8 text-center text-xs text-slate-400 mt-12">
+                Accase · Fallas desde OnlineFleet (simulado)
+            </footer>
+        </main>
+    </div>
+
+    <script src="js/store.js"></script>
+    <script>
+        // --- Catálogo de estatus: etiqueta para el <select> y clases Tailwind del "chip" ---
+        const ESTILOS_ESTATUS = {
+            sin_reparar: {
+                etiqueta: 'Sin reparar',
+                clases: ['bg-red-100', 'text-red-800', 'border-red-200']
+            },
+            en_reparacion: {
+                etiqueta: 'En reparación',
+                clases: ['bg-amber-100', 'text-amber-800', 'border-amber-200']
+            },
+            finalizado: {
+                etiqueta: 'Finalizado',
+                clases: ['bg-emerald-100', 'text-emerald-800', 'border-emerald-200']
+            }
+        };
+
+        const CLASES_CHIP = Object.values(ESTILOS_ESTATUS).flatMap((item) => item.clases);
+
+        function mapFalla(f) {
+            return {
+                folio: f.folio,
+                unidad: f.unitId + ' · ' + f.title,
+                chofer: f.driver,
+                reportado: f.reportado,
+                costo: f.cost,
+                estatus: f.status
+            };
+        }
+
+        let fallas = AccaseStore.load().faults.map(mapFalla);
+
+        const tablaBody = document.getElementById('recentTripsTable');
+        const inputBuscador = document.getElementById('buscadorInput');
+
+        // Convierte 45000 -> "$45,000" (formato México). El costo se guarda como número, no como texto.
+        function formatearMoneda(valor) {
+            const numero = Number(valor) || 0;
+            return '$' + numero.toLocaleString('es-MX');
+        }
+
+        // Quita $, comas y letras. Vacío = 0.
+        function parsearMoneda(texto) {
+            const soloNumeros = String(texto).replace(/[^0-9]/g, '');
+            if (soloNumeros === '') return 0;
+            return parseInt(soloNumeros, 10);
+        }
+
+        function formatearFecha(iso) {
+            const fecha = new Date(iso);
+            return fecha.toLocaleString('es-MX', {
+                day: 'numeric',
+                month: 'short',
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+        }
+
+        function fallaPorFolio(folio) {
+            return fallas.find((item) => item.folio === folio);
+        }
+
+        // El buscador no debe mirar el <select> ni el precio formateado: solo folio, unidad y chofer.
+        function coincideBusqueda(falla, texto) {
+            if (!texto) return true;
+            const haystack = [falla.folio, falla.unidad, falla.chofer].join(' ').toLowerCase();
+            return haystack.includes(texto);
+        }
+
+        function aplicarEstiloSelect(select) {
+            select.classList.remove(...CLASES_CHIP);
+            const estilo = ESTILOS_ESTATUS[select.value];
+            if (estilo) select.classList.add(...estilo.clases);
+        }
+
+        // Recorre el arreglo completo (aunque la tabla esté filtrada) y pinta las 4 tarjetas.
+        function actualizarMetricas() {
+            const conteos = { finalizado: 0, en_reparacion: 0, sin_reparar: 0 };
+            let totalCosto = 0;
+
+            fallas.forEach((falla) => {
+                if (conteos[falla.estatus] !== undefined) conteos[falla.estatus] += 1;
+                totalCosto += Number(falla.costo) || 0;
+            });
+
+            document.getElementById('finalizadas').textContent = String(conteos.finalizado);
+            document.getElementById('enReparacion').textContent = String(conteos.en_reparacion);
+            document.getElementById('sinReparar').textContent = String(conteos.sin_reparar);
+            document.getElementById('totalFallas').textContent = String(fallas.length);
+            document.getElementById('totalCost').textContent = formatearMoneda(totalCosto);
+        }
+
+        function opcionesEstatus(estatusActual) {
+            return Object.entries(ESTILOS_ESTATUS)
+                .map(([valor, meta]) => {
+                    const selected = valor === estatusActual ? ' selected' : '';
+                    return `<option value="${valor}" class="bg-white text-slate-700"${selected}>${meta.etiqueta}</option>`;
+                })
+                .join('');
+        }
+
+        // Vuelve a dibujar filas a partir del arreglo + filtro. Evita IDs duplicados: cada control usa el folio.
+        function renderTabla(textoBusqueda) {
+            const filtro = (textoBusqueda ?? inputBuscador.value).toLowerCase().trim();
+            const visibles = fallas.filter((falla) => coincideBusqueda(falla, filtro));
+
+            if (visibles.length === 0) {
+                tablaBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-10 px-5 text-center text-slate-400">
+                            No hay fallas que coincidan con “${filtro}”.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tablaBody.innerHTML = visibles.map((falla) => `
+                <tr class="hover:bg-slate-50/80 transition" data-folio="${falla.folio}">
+                    <td class="py-3.5 px-5 font-mono text-xs font-bold text-indigo-600">${falla.folio}</td>
+                    <td class="py-3.5 px-5">
+                        <div class="font-semibold text-slate-800">${falla.unidad}</div>
+                        <div class="text-xs text-slate-400">${falla.chofer}</div>
+                    </td>
+                    <td class="py-3.5 px-5 font-medium text-slate-700">${formatearFecha(falla.reportado)}</td>
+                    <td class="py-3.5 px-5 text-right">
+                        <label for="costo-${falla.folio}" class="sr-only">Costo de ${falla.folio}</label>
+                        <input
+                            id="costo-${falla.folio}"
+                            data-campo="costo"
+                            inputmode="numeric"
+                            type="text"
+                            value="${formatearMoneda(falla.costo)}"
+                            placeholder="$0"
+                            class="w-36 rounded-lg border border-slate-200 bg-slate-50 py-1 px-3 text-right text-sm font-semibold text-slate-800 outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100"
+                        >
+                    </td>
+                    <td class="py-3.5 px-5 text-center">
+                        <label for="estatus-${falla.folio}" class="sr-only">Estatus de ${falla.folio}</label>
+                        <select
+                            id="estatus-${falla.folio}"
+                            data-campo="estatus"
+                            class="cursor-pointer rounded-full text-xs font-semibold px-2.5 py-1 border outline-none transition-colors"
+                        >
+                            ${opcionesEstatus(falla.estatus)}
+                        </select>
+                    </td>
+                </tr>
+            `).join('');
+
+            tablaBody.querySelectorAll('select[data-campo="estatus"]').forEach(aplicarEstiloSelect);
+        }
+
+        // Un solo listener en el tbody (delegación): sirve para filas actuales y las que se vuelvan a pintar.
+        tablaBody.addEventListener('focusin', (evento) => {
+            const input = evento.target.closest('input[data-campo="costo"]');
+            if (!input) return;
+            input.value = String(parsearMoneda(input.value) || '');
+        });
+
+        tablaBody.addEventListener('focusout', (evento) => {
+            const input = evento.target.closest('input[data-campo="costo"]');
+            if (!input) return;
+
+            const fila = input.closest('tr');
+            const falla = fallaPorFolio(fila.dataset.folio);
+            if (!falla) return;
+
+            falla.costo = parsearMoneda(input.value);
+            input.value = formatearMoneda(falla.costo);
+            AccaseStore.updateFault(falla.folio, { cost: falla.costo });
+            actualizarMetricas();
+        });
+
+        tablaBody.addEventListener('keydown', (evento) => {
+            if (evento.key !== 'Enter') return;
+            const input = evento.target.closest('input[data-campo="costo"]');
+            if (!input) return;
+            evento.preventDefault();
+            input.blur();
+        });
+
+        tablaBody.addEventListener('input', (evento) => {
+            const input = evento.target.closest('input[data-campo="costo"]');
+            if (!input) return;
+
+            const fila = input.closest('tr');
+            const falla = fallaPorFolio(fila.dataset.folio);
+            if (!falla) return;
+
+            // Recalcula el total mientras escribes, sin volver a renderizar (así no se pierde el cursor).
+            falla.costo = parsearMoneda(input.value);
+            AccaseStore.updateFault(falla.folio, { cost: falla.costo });
+            actualizarMetricas();
+        });
+
+        tablaBody.addEventListener('change', (evento) => {
+            const select = evento.target.closest('select[data-campo="estatus"]');
+            if (!select) return;
+
+            const fila = select.closest('tr');
+            const falla = fallaPorFolio(fila.dataset.folio);
+            if (!falla) return;
+
+            falla.estatus = select.value;
+            AccaseStore.updateFault(falla.folio, { status: falla.estatus });
+            aplicarEstiloSelect(select);
+            actualizarMetricas();
+        });
+
+        const syncBtn = document.getElementById('syncBtn');
+        syncBtn.addEventListener('click', () => {
+            AccaseStore.syncOnlineFleet();
+            fallas = AccaseStore.load().faults.map(mapFalla);
+            renderTabla();
+            actualizarMetricas();
+            syncBtn.textContent = 'Sincronizado';
+            setTimeout(() => { syncBtn.textContent = 'Sincronizar OnlineFleet'; }, 1600);
+        });
+
+        inputBuscador.addEventListener('input', () => {
+            renderTabla();
+        });
+
+        renderTabla('');
+        actualizarMetricas();
+    </script>
+</body>
+</html>
